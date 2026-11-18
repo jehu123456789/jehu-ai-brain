@@ -10,6 +10,39 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// Verify the signed-in JehuApp user
+async function authenticateUser(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || "";
+
+    if (!authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        error: "Please sign in first."
+      });
+    }
+
+    const token = authHeader.slice(7);
+
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error || !data.user) {
+      return res.status(401).json({
+        error: "Your session is invalid. Please sign in again."
+      });
+    }
+
+    req.jehuUser = data.user;
+    next();
+
+  } catch (error) {
+    console.error("Authentication error:", error.message);
+
+    return res.status(500).json({
+      error: "Authentication failed."
+    });
+  }
+}
+
 app.use(cors({
   origin: [
     "https://jehu-chart.onrender.com"
