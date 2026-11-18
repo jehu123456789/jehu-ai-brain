@@ -17,6 +17,32 @@ app.use(cors({
 }));
 
 app.use(express.json({ limit: "10mb" }));
+// Supabase connection test
+app.get("/api/supabase-status", async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from("jehu_profiles")
+      .select("id")
+      .limit(1);
+
+    if (error) {
+      throw error;
+    }
+
+    res.json({
+      connected: true,
+      message: "Jehu AI Brain is connected to Supabase."
+    });
+
+  } catch (error) {
+    console.error("Supabase connection error:", error.message);
+
+    res.status(500).json({
+      connected: false,
+      message: "Supabase connection failed."
+    });
+  }
+});
 
 // Health check
 app.get("/", (req, res) => {
